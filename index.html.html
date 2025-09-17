@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spanish Practice for Beginners</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f7ff;
+        }
+
+        .tab-button.active {
+            background-color: #2563eb;
+            color: white;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+
+        .game-content {
+            display: none;
+        }
+
+        .game-content.active {
+            display: block;
+        }
+
+        .feedback.correct {
+            color: #16a34a;
+            font-weight: 600;
+        }
+
+        .feedback.incorrect {
+            color: #dc2626;
+            font-weight: 600;
+        }
+
+        input[type="text"].correct-answer {
+            border-color: #16a34a;
+            box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.3);
+        }
+
+        input[type="text"].incorrect-answer {
+            border-color: #dc2626;
+            box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.3);
+        }
+
+        /* Flashcard Styles */
+        .flashcard-container {
+            perspective: 1000px;
+        }
+
+        .flashcard {
+            width: 100%;
+            height: 200px;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .flashcard-inner {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+        }
+
+        .flashcard.flipped .flashcard-inner {
+            transform: rotateY(180deg);
+        }
+
+        .flashcard-front,
+        .flashcard-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+
+        .flashcard-front {
+            background-color: white;
+            color: #1e3a8a;
+        }
+
+        .flashcard-back {
+            background-color: #1e3a8a;
+            color: white;
+            transform: rotateY(180deg);
+        }
+
+        /* Drag and Drop Styles */
+        .drop-zone {
+            display: inline-block;
+            min-width: 60px;
+            height: 40px;
+            border: 2px dashed #9ca3af;
+            background-color: #f9fafb;
+            border-radius: 0.5rem;
+            vertical-align: middle;
+            margin: 0 4px;
+            padding: 4px;
+            text-align: center;
+        }
+
+        .drop-zone.correct-drop {
+            border-color: #16a34a;
+            background-color: #dcfce7;
+        }
+
+        .drop-zone.incorrect-drop {
+            border-color: #dc2626;
+            background-color: #fee2e2;
+        }
+
+        .draggable {
+            cursor: grab;
+            user-select: none;
+            padding: 8px 16px;
+            background-color: white;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            font-weight: 600;
+        }
+    </style>
+</head>
+
+<body class="p-4 md:p-8">
+
+    <div class="max-w-4xl mx-auto bg-white rounded-2xl shadow-lg p-6 md:p-8">
+        <header class="text-center mb-8">
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-800">Spanish Learning Games</h1>
+            <p class="text-gray-500 mt-2">Practice your new Spanish skills with these fun exercises!</p>
+        </header>
+
+        <div class="flex flex-wrap justify-center gap-2 md:gap-4 mb-8 border-b pb-4">
+            <button
+                class="tab-button active text-sm md:text-base font-semibold py-2 px-4 rounded-full transition-colors duration-300 bg-gray-200 text-gray-700 hover:bg-blue-500 hover:text-white"
+                onclick="openGame('game1')">Game 1: Complete Sentence</button>
+            <button
+                class="tab-button text-sm md:text-base font-semibold py-2 px-4 rounded-full transition-colors duration-300 bg-gray-200 text-gray-700 hover:bg-blue-500 hover:text-white"
+                onclick="openGame('game2')">Game 2: Guess Translation</button>
+            <button
+                class="tab-button text-sm md:text-base font-semibold py-2 px-4 rounded-full transition-colors duration-300 bg-gray-200 text-gray-700 hover:bg-blue-500 hover:text-white"
+                onclick="openGame('game3')">Game 3: Build a Dialogue</button>
+            <button
+                class="tab-button text-sm md:text-base font-semibold py-2 px-4 rounded-full transition-colors duration-300 bg-gray-200 text-gray-700 hover:bg-blue-500 hover:text-white"
+                onclick="openGame('game4')">Game 4: Flashcards</button>
+            <button
+                class="tab-button text-sm md:text-base font-semibold py-2 px-4 rounded-full transition-colors duration-300 bg-gray-200 text-gray-700 hover:bg-blue-500 hover:text-white"
+                onclick="openGame('game5')">Game 5: Drag & Drop Story</button>
+        </div>
+
+        <main>
+            <!-- Game 1: Complete the Sentence -->
+            <div id="game1" class="game-content active">
+                <h2 class="text-2xl font-bold text-gray-700 mb-4 text-center">Game 1: Fill in the Blank</h2>
+                <p class="text-center text-gray-600 mb-6">Write the missing Spanish word to complete the sentence.</p>
+                <div class="space-y-6">
+                    <div class="question-group">
+                        <label for="q1" class="block text-lg font-medium text-gray-700">Mi ______ es Fatma.</label>
+                        <p class="text-sm text-gray-500 mt-1">Hint: My name is Fatma.</p>
+                        <input type="text" id="q1" data-answer="nombre"
+                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-3">
+                        <div id="feedback-q1" class="feedback mt-2"></div>
+                    </div>
+                    <div class="question-group">
+                        <label for="q2" class="block text-lg font-medium text-gray-700">Soy de ______.</label>
+                        <p class="text-sm text-gray-500 mt-1">Hint: I'm from Egypt.</p>
+                        <input type="text" id="q2" data-answer="Egipto"
+                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-3">
+                        <div id="feedback-q2" class="feedback mt-2"></div>
+                    </div>
+                    <div class="question-group">
+                        <label for="q3" class="block text-lg font-medium text-gray-700">¿Cuántos años ______?</label>
+                        <p class="text-sm text-gray-500 mt-1">Hint: How old are you?</p>
+                        <input type="text" id="q3" data-answer="tienes"
+                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-3">
+                        <div id="feedback-q3" class="feedback mt-2"></div>
+                    </div>
+                    <div class="question-group">
+                        <label for="q4" class="block text-lg font-medium text-gray-700">Yo ______ español.</label>
+                        <p class="text-sm text-gray-500 mt-1">Hint: I speak Spanish.</p>
+                        <input type="text" id="q4" data-answer="hablo"
+                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-3">
+                        <div id="feedback-q4" class="feedback mt-2"></div>
+                    </div>
+                    <div class="question-group">
+                        <label for="q5" class="block text-lg font-medium text-gray-700">Quiero ______ más.</label>
+                        <p class="text-sm text-gray-500 mt-1">Hint: I want to sleep more.</p>
+                        <input type="text" id="q5" data-answer="dormir"
+                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-3">
+                        <div id="feedback-q5" class="feedback mt-2"></div>
+                    </div>
+                    <div class="question-group">
+                        <label for="q6" class="block text-lg font-medium text-gray-700">Me encantan tus ______.</label>
+                        <p class="text-sm text-gray-500 mt-1">Hint: I love your eyes.</p>
+                        <input type="text" id="q6" data-answer="ojos"
+                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-3">
+                        <div id="feedback-q6" class="feedback mt-2"></div>
+                    </div>
+                </div>
+                <div class="text-center mt-6">
+                    <button onclick="checkGame1()"
+                        class="bg-green-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-green-700 transition-colors">Check
+                        Answers</button>
+                </div>
+            </div>
+
+            <!-- Game 2: Guess the Translation -->
+            <div id="game2" class="game-content">
+                <h2 class="text-2xl font-bold text-gray-700 mb-4 text-center">Game 2: Guess the Translation</h2>
+                <p class="text-center text-gray-600 mb-6">Choose the correct Spanish translation for the phrase.</p>
+                <div class="space-y-6">
+                    <div>
+                        <p class="text-lg font-medium text-gray-700 mb-2">I am tired.</p>
+                        <div class="flex flex-col space-y-2" id="mcq1-options">
+                            <button data-correct="false"
+                                class="text-left p-3 bg-gray-100 rounded-lg hover:bg-blue-100">Yo como mucho.</button>
+                            <button data-correct="true"
+                                class="text-left p-3 bg-gray-100 rounded-lg hover:bg-blue-100">Estoy cansada.</button>
+                            <button data-correct="false"
+                                class="text-left p-3 bg-gray-100 rounded-lg hover:bg-blue-100">Tengo un amigo.</button>
+                        </div>
+                        <div id="feedback-mcq1" class="feedback mt-2"></div>
+                    </div>
+                    <div>
+                        <p class="text-lg font-medium text-gray-700 mb-2">A coffee, please.</p>
+                        <div class="flex flex-col space-y-2" id="mcq2-options">
+                            <button data-correct="true"
+                                class="text-left p-3 bg-gray-100 rounded-lg hover:bg-blue-100">Un café, por
+                                favor.</button>
+                            <button data-correct="false"
+                                class="text-left p-3 bg-gray-100 rounded-lg hover:bg-blue-100">El agua es fría.</button>
+                            <button data-correct="false"
+                                class="text-left p-3 bg-gray-100 rounded-lg hover:bg-blue-100">No sé.</button>
+                        </div>
+                        <div id="feedback-mcq2" class="feedback mt-2"></div>
+                    </div>
+                    <div>
+                        <p class="text-lg font-medium text-gray-700 mb-2">Where are you?</p>
+                        <div class="flex flex-col space-y-2" id="mcq3-options">
+                            <button data-correct="false"
+                                class="text-left p-3 bg-gray-100 rounded-lg hover:bg-blue-100">Yo estoy
+                                cansada.</button>
+                            <button data-correct="true"
+                                class="text-left p-3 bg-gray-100 rounded-lg hover:bg-blue-100">¿Dónde estás?</button>
+                            <button data-correct="false"
+                                class="text-left p-3 bg-gray-100 rounded-lg hover:bg-blue-100">Quiero comer.</button>
+                        </div>
+                        <div id="feedback-mcq3" class="feedback mt-2"></div>
+                    </div>
+                    <div>
+                        <p class="text-lg font-medium text-gray-700 mb-2">I need you.</p>
+                        <div class="flex flex-col space-y-2" id="mcq4-options">
+                            <button data-correct="false"
+                                class="text-left p-3 bg-gray-100 rounded-lg hover:bg-blue-100">Odio el verano.</button>
+                            <button data-correct="false"
+                                class="text-left p-3 bg-gray-100 rounded-lg hover:bg-blue-100">Yo sé.</button>
+                            <button data-correct="true"
+                                class="text-left p-3 bg-gray-100 rounded-lg hover:bg-blue-100">Te necesito.</button>
+                        </div>
+                        <div id="feedback-mcq4" class="feedback mt-2"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Game 3: Build a Dialogue -->
+            <div id="game3" class="game-content">
+                <h2 class="text-2xl font-bold text-gray-700 mb-4 text-center">Game 3: Build a Dialogue</h2>
+                <p class="text-center text-gray-600 mb-6">Choose the best response to continue the conversation.</p>
+                <div class="bg-blue-50 p-6 rounded-lg shadow-inner">
+                    <div class="dialogue-line mb-4">
+                        <p><strong class="text-blue-700">You:</strong> ¡Hola! ¿Cómo te llamas?</p>
+                    </div>
+                    <div id="dialogue-part1">
+                        <p class="mb-2 font-semibold">What is the correct response?</p>
+                        <div class="flex flex-col space-y-2">
+                            <button onclick="selectDialogueOption(this, false, 'dialogue-part1', 'dialogue-part2')"
+                                class="text-left p-3 bg-white rounded-lg hover:bg-gray-100 shadow-sm">Soy de
+                                Egipto.</button>
+                            <button onclick="selectDialogueOption(this, true, 'dialogue-part1', 'dialogue-part2')"
+                                class="text-left p-3 bg-white rounded-lg hover:bg-gray-100 shadow-sm">Me llamo
+                                Fatma.</button>
+                        </div>
+                        <div id="feedback-dialogue1" class="feedback mt-2"></div>
+                    </div>
+                    <div id="dialogue-part2" class="hidden mt-4">
+                        <div class="dialogue-line mb-4">
+                            <p><strong class="text-green-700">Fatma:</strong> Me llamo Fatma.</p>
+                            <p><strong class="text-blue-700">You:</strong> Mucho gusto, Fatma. ¿De dónde eres?</p>
+                        </div>
+                        <p class="mb-2 font-semibold">What is the correct response?</p>
+                        <div class="flex flex-col space-y-2">
+                            <button onclick="selectDialogueOption(this, true, 'dialogue-part2', 'dialogue-part3')"
+                                class="text-left p-3 bg-white rounded-lg hover:bg-gray-100 shadow-sm">Soy de
+                                Egipto.</button>
+                            <button onclick="selectDialogueOption(this, false, 'dialogue-part2', 'dialogue-part3')"
+                                class="text-left p-3 bg-white rounded-lg hover:bg-gray-100 shadow-sm">Tengo 19
+                                años.</button>
+                        </div>
+                        <div id="feedback-dialogue2" class="feedback mt-2"></div>
+                    </div>
+                    <div id="dialogue-part3" class="hidden mt-4">
+                        <div class="dialogue-line mb-4">
+                            <p><strong class="text-green-700">Fatma:</strong> Soy de Egipto.</p>
+                        </div>
+                        <p class="text-center font-bold text-green-600">¡Conversación completada!</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Game 4: Flashcards -->
+            <div id="game4" class="game-content">
+                <h2 class="text-2xl font-bold text-gray-700 mb-4 text-center">Game 4: Flashcards</h2>
+                <p class="text-center text-gray-600 mb-6">Click the card to flip it and see the translation. Click
+                    "Next" for a new word.</p>
+                <div class="flashcard-container max-w-md mx-auto">
+                    <div id="flashcard" class="flashcard">
+                        <div class="flashcard-inner">
+                            <div id="flashcard-front" class="flashcard-front"></div>
+                            <div id="flashcard-back" class="flashcard-back"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="text-center mt-6">
+                    <button id="next-flashcard"
+                        class="bg-blue-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-blue-700 transition-colors">Next
+                        Word</button>
+                </div>
+            </div>
+
+            <!-- Game 5: Drag & Drop Story -->
+            <div id="game5" class="game-content">
+                <h2 class="text-2xl font-bold text-gray-700 mb-4 text-center">Game 5: Drag & Drop Story</h2>
+                <p class="text-center text-gray-600 mb-6">Drag the correct article into the blank spaces to complete the
+                    story.</p>
+
+                <div id="story-container">
+                    <!-- Stories will be injected here by JS -->
+                </div>
+
+                <div class="mt-6 p-4 bg-gray-100 rounded-lg flex flex-wrap justify-center items-center gap-4">
+                    <p class="font-bold text-gray-700">Draggable Words:</p>
+                    <div id="draggable-words" class="flex flex-wrap gap-3">
+                        <!-- Draggable items will be injected here -->
+                    </div>
+                </div>
+
+                <div class="text-center mt-6 flex justify-center gap-4">
+                    <button onclick="checkStory()"
+                        class="bg-green-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-green-700 transition-colors">Check
+                        Story</button>
+                    <button onclick="nextStory()"
+                        class="bg-gray-500 text-white font-bold py-2 px-6 rounded-lg hover:bg-gray-600 transition-colors">Next
+                        Story</button>
+                </div>
+                <div id="story-feedback" class="feedback text-center mt-4 text-xl"></div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        function openGame(gameId) {
+            const games = document.querySelectorAll('.game-content');
+            games.forEach(game => game.classList.remove('active'));
+
+            const buttons = document.querySelectorAll('.tab-button');
+            buttons.forEach(button => button.classList.remove('active'));
+
+            document.getElementById(gameId).classList.add('active');
+            event.currentTarget.classList.add('active');
+        }
+
+        // --- Game 1 Logic ---
+        function checkGame1() {
+            const questions = [
+                { id: 'q1', feedbackId: 'feedback-q1' },
+                { id: 'q2', feedbackId: 'feedback-q2' },
+                { id: 'q3', feedbackId: 'feedback-q3' },
+                { id: 'q4', feedbackId: 'feedback-q4' },
+                { id: 'q5', feedbackId: 'feedback-q5' },
+                { id: 'q6', feedbackId: 'feedback-q6' },
+            ];
+            questions.forEach(q => {
+                const input = document.getElementById(q.id);
+                const feedback = document.getElementById(q.feedbackId);
+                const correctAnswer = input.dataset.answer;
+
+                input.classList.remove('correct-answer', 'incorrect-answer');
+
+                if (input.value.trim().toLowerCase() === correctAnswer.toLowerCase().replace(/¿|¡/g, '')) {
+                    feedback.textContent = 'Correct!';
+                    feedback.className = 'feedback correct';
+                    input.classList.add('correct-answer');
+                } else {
+                    feedback.textContent = `Incorrect. The correct answer is: ${correctAnswer}`;
+                    feedback.className = 'feedback incorrect';
+                    input.classList.add('incorrect-answer');
+                }
+            });
+        }
+
+        // --- Game 2 Logic ---
+        document.querySelectorAll('[id^="mcq"]').forEach(group => {
+            group.addEventListener('click', event => {
+                if (event.target.tagName === 'BUTTON') {
+                    const isCorrect = event.target.dataset.correct === 'true';
+                    const feedbackId = 'feedback-' + group.id.replace('-options', '');
+                    const feedbackEl = document.getElementById(feedbackId);
+
+                    group.querySelectorAll('button').forEach(btn => btn.disabled = true);
+
+                    if (isCorrect) {
+                        event.target.style.backgroundColor = '#dcfce7';
+                        event.target.style.borderColor = '#16a34a';
+                        feedbackEl.textContent = 'Correct!';
+                        feedbackEl.className = 'feedback correct';
+                    } else {
+                        event.target.style.backgroundColor = '#fee2e2';
+                        event.target.style.borderColor = '#dc2626';
+                        feedbackEl.textContent = 'Incorrect.';
+                        feedbackEl.className = 'feedback incorrect';
+
+                        const correctButton = group.querySelector('button[data-correct="true"]');
+                        correctButton.style.backgroundColor = '#dcfce7';
+                    }
+                }
+            });
+        });
+
+        // --- Game 3 Logic ---
+        function selectDialogueOption(button, isCorrect, currentPartId, nextPartId) {
+            const feedbackEl = document.getElementById(`feedback-dialogue${currentPartId.slice(-1)}`);
+            const currentPart = document.getElementById(currentPartId);
+
+            currentPart.querySelectorAll('button').forEach(btn => btn.disabled = true);
+
+            if (isCorrect) {
+                button.style.backgroundColor = '#dcfce7';
+                feedbackEl.textContent = 'Correct!';
+                feedbackEl.className = 'feedback correct';
+                if (nextPartId) {
+                    setTimeout(() => {
+                        document.getElementById(nextPartId).classList.remove('hidden');
+                    }, 1000);
+                }
+            } else {
+                button.style.backgroundColor = '#fee2e2';
+                feedbackEl.textContent = 'Incorrect. Try again later.';
+                feedbackEl.className = 'feedback incorrect';
+            }
+        }
+
+        // --- Game 4: Flashcards Logic ---
+        const flashcards = [
+            { english: "Water", spanish: "Agua" },
+            { english: "Coffee", spanish: "Café" },
+            { english: "Tea", spanish: "Té" },
+            { english: "Friend", spanish: "Amigo / Amiga" },
+            { english: "Game", spanish: "Juego" },
+            { english: "Eyes", spanish: "Ojos" },
+            { english: "Summer", spanish: "Verano" },
+            { english: "To eat", spanish: "Comer" },
+            { english: "To sleep", spanish: "Dormir" },
+            { english: "House", spanish: "Casa" },
+            { english: "To know", spanish: "Saber" },
+            { english: "To understand", spanish: "Entender" },
+            { english: "To want", spanish: "Querer" },
+            { english: "To need", spanish: "Necesitar" },
+            { english: "To hate", spanish: "Odiar" },
+            { english: "Voice", spanish: "Voz" },
+            { english: "Handsome", spanish: "Guapo" },
+            { english: "Beautiful", spanish: "Hermosa" },
+            { english: "Where?", spanish: "¿Dónde?" },
+            { english: "When?", spanish: "¿Cuándo?" }
+        ];
+        let currentCardIndex = -1;
+        const flashcardEl = document.getElementById('flashcard');
+        const frontEl = document.getElementById('flashcard-front');
+        const backEl = document.getElementById('flashcard-back');
+
+        function showNextFlashcard() {
+            flashcardEl.classList.remove('flipped');
+            currentCardIndex = (currentCardIndex + 1) % flashcards.length;
+            setTimeout(() => {
+                frontEl.textContent = flashcards[currentCardIndex].english;
+                backEl.textContent = flashcards[currentCardIndex].spanish;
+            }, 200);
+        }
+
+        flashcardEl.addEventListener('click', () => {
+            flashcardEl.classList.toggle('flipped');
+        });
+        document.getElementById('next-flashcard').addEventListener('click', showNextFlashcard);
+        showNextFlashcard();
+
+        // --- Game 5: Drag & Drop Logic ---
+        const stories = [
+            {
+                id: 1,
+                text: `Tengo <span class="drop-zone" data-answer="un"></span> perro. <span class="drop-zone" data-answer="El"></span> perro se llama Max. Max es <span class="drop-zone" data-answer="un"></span> amigo muy bueno. Le gustan <span class="drop-zone" data-answer="las"></span> pelotas rojas.`,
+                articles: ["un", "El", "un", "las"]
+            },
+            {
+                id: 2,
+                text: `En <span class="drop-zone" data-answer="la"></span> casa, hay <span class="drop-zone" data-answer="una"></span> mesa grande. Sobre <span class="drop-zone" data-answer="la"></span> mesa, hay <span class="drop-zone" data-answer="unos"></span> libros y <span class="drop-zone" data-answer="unas"></span> flores amarillas.`,
+                articles: ["la", "una", "la", "unos", "unas"]
+            },
+            {
+                id: 3,
+                text: `En <span class="drop-zone" data-answer="el"></span> parque, hay <span class="drop-zone" data-answer="un"></span> árbol grande y <span class="drop-zone" data-answer="unas"></span> flores bonitas. <span class="drop-zone" data-answer="Los"></span> niños juegan con <span class="drop-zone" data-answer="una"></span> pelota azul.`,
+                articles: ["el", "un", "unas", "Los", "una"]
+            }
+        ];
+        let currentStoryIndex = 0;
+        const draggableWordsContainer = document.getElementById('draggable-words');
+
+        function loadStory(storyIndex) {
+            const story = stories[storyIndex];
+            document.getElementById('story-container').innerHTML = `<p class="text-xl leading-loose">${story.text}</p>`;
+
+            draggableWordsContainer.innerHTML = '';
+            shuffleArray(story.articles).forEach((article, i) => {
+                const wordEl = document.createElement('div');
+                wordEl.id = `drag${story.id}-${i}`;
+                wordEl.textContent = article;
+                wordEl.className = 'draggable';
+                wordEl.draggable = true;
+                wordEl.addEventListener('dragstart', drag);
+                draggableWordsContainer.appendChild(wordEl);
+            });
+
+            document.querySelectorAll('.drop-zone').forEach(zone => {
+                zone.addEventListener('dragover', allowDrop);
+                zone.addEventListener('drop', drop);
+            });
+            document.getElementById('story-feedback').textContent = '';
+        }
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function allowDrop(ev) {
+            ev.preventDefault();
+        }
+
+        function drag(ev) {
+            ev.dataTransfer.setData("text", ev.target.id);
+        }
+
+        function drop(ev) {
+            ev.preventDefault();
+            const data = ev.dataTransfer.getData("text");
+            const draggedEl = document.getElementById(data);
+            if (ev.target.classList.contains('drop-zone') && !ev.target.hasChildNodes()) {
+                ev.target.appendChild(draggedEl);
+            }
+        }
+
+        function checkStory() {
+            const dropZones = document.querySelectorAll('#story-container .drop-zone');
+            let allCorrect = true;
+            dropZones.forEach(zone => {
+                zone.classList.remove('correct-drop', 'incorrect-drop');
+                const droppedEl = zone.firstChild;
+                if (droppedEl && droppedEl.textContent.toLowerCase() === zone.dataset.answer.toLowerCase()) {
+                    zone.classList.add('correct-drop');
+                } else {
+                    zone.classList.add('incorrect-drop');
+                    allCorrect = false;
+                }
+            });
+            const feedbackEl = document.getElementById('story-feedback');
+            if (allCorrect) {
+                feedbackEl.textContent = "¡Excelente! ¡Toda la historia es correcta!";
+                feedbackEl.className = 'feedback correct text-center mt-4 text-xl';
+            } else {
+                feedbackEl.textContent = "Algunas respuestas no son correctas. Inténtalo de nuevo.";
+                feedbackEl.className = 'feedback incorrect text-center mt-4 text-xl';
+            }
+        }
+
+        function nextStory() {
+            currentStoryIndex = (currentStoryIndex + 1) % stories.length;
+            loadStory(currentStoryIndex);
+        }
+
+        loadStory(currentStoryIndex);
+
+    </script>
+
+</body>
+
+</html>
